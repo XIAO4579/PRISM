@@ -29,6 +29,7 @@
   - [4. Evaluation](#4-evaluation)
   - [5. Reproduction hyperparameters](#5-reproduction-hyperparameters)
   - [6. Repo structure](#6-repo-structure)
+- [Local modifications](#local-modifications)
 - [Citation](#citation)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
@@ -275,8 +276,24 @@ PRISM/
 ├── transformers-4.57.0/    # patched transformers (editable install)
 ├── moe/                    # MoE modules used by the training recipes
 ├── tools/                  # misc helpers
-└── difference.md           # notes on local modifications vs. upstream
+└── difference/             # diff reports vs. upstream verl / transformers (CN + EN)
 ```
+
+---
+
+## Local modifications
+
+We document every non-trivial change made on top of the upstream `verl` and
+`transformers` releases that this repo vendors. Reports are provided in both
+Chinese and English under [`difference/`](difference/):
+
+| Topic | Chinese | English |
+|---|---|---|
+| `transformers-4.57.0` (Qwen-related changes: new `qwen2_vl_moe`, `qwen2_5_vl_moe`, and `Qwen3VLMoeForTokenClassification`) | [`transformers_diff_CN.md`](difference/transformers_diff_CN.md) | [`transformers_diff_EN.md`](difference/transformers_diff_EN.md) |
+| `verl` (PRISM critic + reward_score additions for the mm_gad pipeline) | [`verl_diff_CN.md`](difference/verl_diff_CN.md) | [`verl_diff_EN.md`](difference/verl_diff_EN.md) |
+
+Each report includes a per-file diff summary, the rationale for the change,
+and any caveats relevant to reproducing or extending PRISM.
 
 ---
 
