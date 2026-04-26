@@ -24,11 +24,12 @@
 - [Overview](#overview)
 - [Getting Started](#getting-started)
   - [1. Environment setup](#1-environment-setup)
-  - [2. Data & model preparation](#2-data--model-preparation)
-  - [3. Training](#3-training)
-  - [4. Evaluation](#4-evaluation)
-  - [5. Reproduction hyperparameters](#5-reproduction-hyperparameters)
-  - [6. Repo structure](#6-repo-structure)
+  - [2. Stage 1 — SFT (LLaMA-Factory)](#2-stage-1--sft-llama-factory)
+  - [3. Stage 2 — PRISM Alignment (`qwen3_vl_prism`)](#3-stage-2--prism-alignment-qwen3_vl_prism)
+  - [4. Stage 3 — RLVR after PRISM (`qwen3_vl_xxpo_after_prism`)](#4-stage-3--rlvr-after-prism-qwen3_vl_xxpo_after_prism)
+  - [5. Evaluation](#5-evaluation)
+  - [6. Reproduction hyperparameters](#6-reproduction-hyperparameters)
+  - [7. Repo structure](#7-repo-structure)
 - [Local modifications](#local-modifications)
 - [Citation](#citation)
 - [Acknowledgements](#acknowledgements)
@@ -75,84 +76,250 @@ Install the bundled `verl` in editable mode:
 cd verl && pip install --no-deps -e . && cd ..
 ```
 
-### 2. Data & model preparation
-
-#### 2.1 Authenticate with HuggingFace
-
-Before downloading private assets, log in once so the token is stored in
-`~/.cache/huggingface/` and picked up automatically:
-
-```bash
-huggingface-cli login           # paste your token when prompted
-# or:  export HF_TOKEN=<YOUR_HF_TOKEN>
-```
-
+> #### Authenticate with HuggingFace (once, shared by all three stages)
+>
+> Before downloading any of the assets used below, log in once so the token is
+> stored in `~/.cache/huggingface/` and picked up automatically:
+>
+> ```bash
+> huggingface-cli login           # paste your token when prompted
+> # or:  export HF_TOKEN=<YOUR_HF_TOKEN>
+> ```
+>
 > Do **not** pass `--token` on the command line, since tokens leak into shell
 > history and job logs.
 
-#### 2.2 Download the distilled model (for the RL-after-PRISM stage)
+PRISM is run as a **three-stage** pipeline. Each stage has its own data and
+model preparation block below; SFT is run with LLaMA-Factory, while the
+alignment and RLVR stages share the same `verl`-based training entrypoints
+under `scripts/train/experiment/`.
+
+| Stage | Tool / Script | Initialization | Objective |
+|---|---|---|---|
+| **1. SFT**         | LLaMA-Factory                                                                             | Qwen3-VL base                       | Standard supervised fine-tuning on multimodal demonstrations |
+| **2. Alignment**   | `qwen3_vl_prism.sh`                                                                       | post-SFT checkpoint                 | On-policy adversarial distillation against an MoE discriminator |
+| **3. RLVR**        | `qwen3_vl_{grpo,dapo,gspo}_after_prism.sh`<br/>(collectively `qwen3_vl_xxpo_after_prism`) | post-alignment (PRISM) checkpoint   | Verifiable-reward RL (accuracy + format) |
+
+### 2. Stage 1 — SFT (LLaMA-Factory)
+
+Stage 1 supervised-fine-tunes the Qwen3-VL base on multimodal demonstrations,
+producing a **post-SFT checkpoint** that initializes Stage 2.
+
+#### 2.1 Data preparation
+
+Two HuggingFace datasets are published in **LlamaFactory `sharegpt`-multimodal
+format** and can be fed straight to LLaMA-Factory without writing any
+conversion code:
+
+| HuggingFace dataset                                                                                | Contents                                                                              |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
+| [`prism-vlm/gemini_distill`](https://huggingface.co/datasets/prism-vlm/gemini_distill)             | ~113K curated Gemini-3-Flash multimodal reasoning demonstrations (the "hard" subset). |
+| [`prism-vlm/gemini_public_mmr1`](https://huggingface.co/datasets/prism-vlm/gemini_public_mmr1)     | ~1.26M public demonstrations (incl. MMR1) used as the broad-coverage SFT mixture.     |
 
 ```bash
-huggingface-cli download \
-    xiao45791/Qwen3-VL-4B-Instruct-Gemini-Distill-method2-stage1-500steps-woKL \
-    --repo-type model \
-    --local-dir /path/to/models/Qwen3-VL-4B-Instruct-Gemini-Distill-method2-stage1-500steps-woKL
-```
-
-#### 2.3 Download the RL training data
-
-```bash
-huggingface-cli download xiao45791/rl_dataset \
+huggingface-cli download prism-vlm/gemini_distill \
     --repo-type dataset \
-    --local-dir /path/to/datasets/rl_dataset
+    --local-dir /path/to/datasets/gemini_distill
+huggingface-cli download prism-vlm/gemini_public_mmr1 \
+    --repo-type dataset \
+    --local-dir /path/to/datasets/gemini_public_mmr1
 ```
 
-Then update the `data.train_files`, `actor_rollout_ref.model.path`, etc. inside
-the training scripts (or export `BASE_DIR` / env vars; see §3.3).
+#### 2.2 Model preparation
 
-### 3. Training
+Start from the official Qwen3-VL base (pick the size that matches your
+compute budget):
 
-All training entrypoints live in `scripts/train/experiment/`:
+```bash
+huggingface-cli download Qwen/Qwen3-VL-4B-Instruct \
+    --repo-type model \
+    --local-dir /path/to/models/Qwen3-VL-4B-Instruct
+# (or Qwen/Qwen3-VL-8B-Instruct for the 8B variant)
+```
 
-| Script | Stage | Algorithm |
-|---|---|---|
-| `qwen3_vl_prism.sh`            | Stage 1: PRISM distillation    | GRPO w/ multi-reward + critic |
-| `qwen3_vl_grpo_after_prism.sh` | Stage 2: RL on distilled model | GRPO |
-| `qwen3_vl_dapo_after_prism.sh` | Stage 2: RL on distilled model | DAPO  |
-| `qwen3_vl_gspo_after_prism.sh` | Stage 2: RL on distilled model | GSPO  |
+#### 2.3 Launch SFT
 
-Every script begins with a short block of path variables
-(`/path/to/...`) and a `BASE_DIR` / `EXPERIMENT_NAME` pair. Update those to
-point at your local layout.
+Register the two datasets from §2.1 in your LLaMA-Factory `dataset_info.json`
+(or list them under `dataset:` in your training YAML), point
+`model_name_or_path` at the §2.2 base model, and run the standard
+LLaMA-Factory entrypoint:
 
-#### 3.1 Single-node
+```bash
+llamafactory-cli train /path/to/your_qwen3vl_sft.yaml
+```
 
-A single node runs with a plain `bash` invocation, and verl starts a local Ray
-cluster automatically:
+See §6 for the exact SFT hyperparameters used in our runs.
+
+> **Skip Stage 1.** The post-SFT checkpoints used in our paper are released
+> on HuggingFace; download one of them and proceed directly to §3:
+>
+> ```bash
+> huggingface-cli download prism-vlm/Qwen3-VL-4B-Instruct-SFT \
+>     --repo-type model \
+>     --local-dir /path/to/models/Qwen3-VL-4B-Instruct-SFT
+> # (or prism-vlm/Qwen3-VL-8B-Instruct-SFT for the 8B variant)
+> ```
+
+### 3. Stage 2 — PRISM Alignment (`qwen3_vl_prism`)
+
+Stage 2 takes the post-SFT Qwen3-VL and pulls its on-policy rollouts back to
+the supervision distribution via on-policy adversarial distillation against
+an **MoE (perception + reasoning) discriminator**. The output is a
+**PRISM-aligned policy** that initializes Stage 3.
+
+#### 3.1 Data preparation
+
+Stage 2 consumes the **alignment-stage** corpus — the on-policy prompts used
+by `qwen3_vl_prism.sh` for adversarial distillation against the MoE
+discriminator:
+
+```bash
+huggingface-cli download <ORG>/<PRISM_ALIGNMENT_DATASET> \
+    --repo-type dataset \
+    --local-dir /path/to/datasets/<PRISM_ALIGNMENT_DATASET>
+```
+
+> Placeholder: `<ORG>/<PRISM_ALIGNMENT_DATASET>` will be filled in once the
+> public release is finalized.
+
+#### 3.2 Model preparation
+
+Stage 2 needs two checkpoints: the **post-SFT policy** (from §2 or downloaded
+via the "Skip Stage 1" note above) and the **MoE discriminator**:
+
+```bash
+# MoE discriminator (perception + reasoning experts)
+huggingface-cli download <ORG>/<PRISM_MOE_DISCRIMINATOR> \
+    --repo-type model \
+    --local-dir /path/to/models/<PRISM_MOE_DISCRIMINATOR>
+```
+
+> Placeholder: `<PRISM_MOE_DISCRIMINATOR>` will be filled in once the public
+> release is finalized.
+
+#### 3.3 Launch alignment
+
+Open `scripts/train/experiment/qwen3_vl_prism.sh` and update the path block at
+the top to match what you downloaded:
+
+```bash
+# inside qwen3_vl_prism.sh
+BASE_DIR=/path/to/PRISM
+EXPERIMENT_NAME=qwen3_vl_prism
+data.train_files=/path/to/datasets/<PRISM_ALIGNMENT_DATASET>/...
+actor_rollout_ref.model.path=/path/to/models/Qwen3-VL-4B-Instruct-SFT
+critic.model.path=/path/to/models/<PRISM_MOE_DISCRIMINATOR>
+```
+
+Single-node:
 
 ```bash
 bash scripts/train/experiment/qwen3_vl_prism.sh
-bash scripts/train/experiment/qwen3_vl_grpo_after_prism.sh
-bash scripts/train/experiment/qwen3_vl_dapo_after_prism.sh
-bash scripts/train/experiment/qwen3_vl_gspo_after_prism.sh
 ```
 
-#### 3.2 Multi-node
-
-Multi-node training requires a Ray cluster. `launch.sh` takes care of bringing
-the head / worker roles up, waiting for readiness, and then running the
-training script on the head while keeping workers alive.
-
-Every node runs the **same** command; role is inferred from
-`MLP_WORKER_RACK_RANK_INDEX` (head = 0):
+Multi-node (driven by `launch.sh`, see §4.4 for the env vars):
 
 ```bash
 bash scripts/train/experiment/launch.sh \
      scripts/train/experiment/qwen3_vl_prism.sh
 ```
 
-The required environment variables are usually injected by the job scheduler,
-but can also be set by hand:
+> **Skip Stage 2.** The post-alignment (PRISM) checkpoints used in our paper
+> are released on HuggingFace; download one of them and proceed directly to
+> §4:
+>
+> ```bash
+> huggingface-cli download <ORG>/<PRISM_ALIGNED_CHECKPOINT> \
+>     --repo-type model \
+>     --local-dir /path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+> ```
+>
+> Placeholder: `<PRISM_ALIGNED_CHECKPOINT>` will be filled in once the public
+> release is finalized.
+
+### 4. Stage 3 — RLVR after PRISM (`qwen3_vl_xxpo_after_prism`)
+
+Stage 3 runs **verifiable-reward RL** on top of the PRISM-aligned checkpoint
+from Stage 2. Three RL algorithms are supported, each with its own dedicated
+script:
+
+| Script                          | Algorithm |
+|---------------------------------|-----------|
+| `qwen3_vl_grpo_after_prism.sh`  | GRPO      |
+| `qwen3_vl_dapo_after_prism.sh`  | DAPO      |
+| `qwen3_vl_gspo_after_prism.sh`  | GSPO      |
+
+These are referred to collectively as `qwen3_vl_xxpo_after_prism`, where
+`xxpo ∈ {grpo, dapo, gspo}`.
+
+#### 4.1 Data preparation
+
+Stage 3 consumes the **RL training set** with verifiable rewards (final-answer
+correctness + format):
+
+```bash
+huggingface-cli download <ORG>/<PRISM_RL_DATASET> \
+    --repo-type dataset \
+    --local-dir /path/to/datasets/<PRISM_RL_DATASET>
+```
+
+> Placeholder: `<PRISM_RL_DATASET>` will be filled in once the public release
+> is finalized.
+
+#### 4.2 Model preparation
+
+Stage 3 starts from the **PRISM-aligned policy** — either the checkpoint
+produced by your own Stage 2 run, or the released checkpoint from the
+"Skip Stage 2" note above:
+
+```bash
+# Option A: use the released post-alignment checkpoint
+huggingface-cli download <ORG>/<PRISM_ALIGNED_CHECKPOINT> \
+    --repo-type model \
+    --local-dir /path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+
+# Option B: point at the checkpoint dumped by your own qwen3_vl_prism.sh, e.g.
+#   /path/to/PRISM/checkpoints/qwen3_vl_prism/<step>/actor/huggingface
+```
+
+Stage 3 does **not** require the MoE discriminator — it is only used by
+Stage 2.
+
+#### 4.3 Launch RLVR
+
+Each `qwen3_vl_{grpo,dapo,gspo}_after_prism.sh` opens with the same path block
+to update:
+
+```bash
+# inside qwen3_vl_xxpo_after_prism.sh
+BASE_DIR=/path/to/PRISM
+EXPERIMENT_NAME=qwen3_vl_<xxpo>_after_prism
+data.train_files=/path/to/datasets/<PRISM_RL_DATASET>/...
+actor_rollout_ref.model.path=/path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+```
+
+Single-node:
+
+```bash
+bash scripts/train/experiment/qwen3_vl_grpo_after_prism.sh
+bash scripts/train/experiment/qwen3_vl_dapo_after_prism.sh
+bash scripts/train/experiment/qwen3_vl_gspo_after_prism.sh
+```
+
+Multi-node (any of the three scripts):
+
+```bash
+bash scripts/train/experiment/launch.sh \
+     scripts/train/experiment/qwen3_vl_grpo_after_prism.sh
+```
+
+#### 4.4 Multi-node env vars (shared between Stage 2 and Stage 3)
+
+Multi-node training requires a Ray cluster. `launch.sh` takes care of bringing
+the head / worker roles up, waiting for readiness, and then running the
+training script on the head while keeping workers alive. Every node runs the
+**same** command; role is inferred from `MLP_WORKER_RACK_RANK_INDEX`
+(head = 0):
 
 | Variable | Meaning | Example |
 |---|---|---|
@@ -162,7 +329,8 @@ but can also be set by hand:
 | `MLP_WORKER_RACK_RANK_INDEX`| Node rank (head = 0)            | `0` or `1` |
 | `MLP_WORKER_GPU`            | GPUs per node                   | `8` |
 
-Manual example with two nodes:
+Manual example with two nodes (Stage 2 shown; Stage 3 is identical with the
+script swapped):
 
 ```bash
 # --- head node (NODE_RANK=0) ---
@@ -178,9 +346,8 @@ bash scripts/train/experiment/launch.sh \
      scripts/train/experiment/qwen3_vl_prism.sh
 ```
 
-#### 3.3 Overriding without editing the script
-
-`launch.sh` and the training scripts respect a few env vars:
+`launch.sh` and the training scripts also respect a few env vars for
+overriding without editing the script:
 
 ```bash
 # force single-node mode even if multi-node vars are set
@@ -192,7 +359,7 @@ BASE_DIR=/path/to/PRISM \
     bash scripts/train/experiment/qwen3_vl_grpo_after_prism.sh
 ```
 
-### 4. Evaluation
+### 5. Evaluation
 
 `scripts/eval/` contains a self-contained reference script that evaluates the
 trained model with [`lmms-eval`](https://github.com/EvolvingLMMs-Lab/lmms-eval).
@@ -234,7 +401,7 @@ Our task overrides under `scripts/eval/tasks/` are registered via
 `--include_path`, so **no patching of the upstream `lmms-eval` repo is
 required**.
 
-### 5. Reproduction hyperparameters
+### 6. Reproduction hyperparameters
 
 We reproduce the full set of hyperparameters used in the paper. The SFT stage
 is run with [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory); the
@@ -265,7 +432,7 @@ alignment and RLVR stages are run with the bundled `verl`.
 > scripts for the exact `verl` config used in our runs. SFT-stage hyperparameters
 > can be plugged into LLaMA-Factory's standard YAML config.
 
-### 6. Repo structure
+### 7. Repo structure
 
 ```
 PRISM/
