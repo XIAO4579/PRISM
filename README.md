@@ -160,7 +160,7 @@ See §6 for the exact SFT hyperparameters used in our runs.
 > # (or prism-vlm/Qwen3-VL-8B-Instruct-SFT for the 8B variant)
 > ```
 
-### 3. Stage 2 — PRISM Alignment (`qwen3_vl_prism`)
+### 3. Stage 2 — PRISM Alignment
 
 Stage 2 takes the post-SFT Qwen3-VL and pulls its on-policy rollouts back to
 the supervision distribution via on-policy adversarial distillation against
@@ -301,7 +301,7 @@ bash scripts/train/experiment/launch.sh \
 > Placeholder: `<PRISM_ALIGNED_CHECKPOINT>` will be filled in once the public
 > release is finalized.
 
-### 4. Stage 3 — RLVR after PRISM (`qwen3_vl_xxpo_after_prism`)
+### 4. Stage 3 — RLVR after PRISM
 
 Stage 3 runs **verifiable-reward RL** on top of the PRISM-aligned checkpoint
 from Stage 2. Three RL algorithms are supported, each with its own dedicated
