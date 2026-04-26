@@ -66,7 +66,7 @@ python3 -m verl.trainer.main_ppo \
     data.train_batch_size=${train_batch_size} \
     data.max_prompt_length=${max_prompt_length} \
     data.max_response_length=${max_response_length} \
-    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-MMR1-TechAI-Gemini-Distill-exploration2-method1-stage1-500-steps \
+    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-PRISM \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \

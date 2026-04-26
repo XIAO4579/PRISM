@@ -66,7 +66,7 @@ python3 -m recipe.dapo.main_dapo \
     algorithm.filter_groups.enable=${enable_filter_groups} \
     algorithm.filter_groups.metric=${filter_groups_metric} \
     algorithm.filter_groups.max_num_gen_batches=${max_num_gen_batches} \
-    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-MMR1-TechAI-Gemini-Distill-exploration2-method1-stage1-500-steps \
+    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-PRISM \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \

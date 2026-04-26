@@ -33,7 +33,7 @@ python3 -m verl.trainer.main_ppo \
     data.max_response_length=6144 \
     data.filter_overlong_prompts=True \
     data.truncation=right \
-    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-100K-SFT \
+    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=4 \
@@ -57,8 +57,8 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.rollout.max_num_batched_tokens=8192 \
     actor_rollout_ref.ref.fsdp_config.param_offload=True \
     actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu=1 \
-    critic.model.path=/path/to/PRISM/models/Qwen3-VL-8B-Instruct \
-    critic.model.tokenizer_path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-100K-SFT \
+    critic.model.path=/path/to/PRISM/models/Qwen3-VL-2B-4X-Moe-warmup-120k \
+    critic.model.tokenizer_path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT \
     critic.model.enable_gradient_checkpointing=True \
     critic.optim.lr=1e-6 \
     critic.use_mm_gad=True \
