@@ -26,11 +26,13 @@ from value_head import Qwen3VLMoeValueHead, get_last_token_scores
 
 
 # --- 配置 ---
-MOE_MODEL_PATH = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-MoE-4x"
-PROCESSOR_PATH = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-MoE-4x"
-DATA_PATH = "/data/home/scwb352/run/test/data_pipeline/data_process_7.6K/dataset_process/api_output_qwen3_full_sft/warmup_pairwise.jsonl"
-OUTPUT_DIR = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-4X-Moe-warmup"
-IMAGE_BASE_PATH = ""
+# 所有路径从环境变量读取，没设置时用占位符 (会显式失败)，保持脚本可发布。
+# 通常由 scripts/train/moe_warmup/train_moe_warmup.sh 注入。
+MOE_MODEL_PATH = os.environ.get("MOE_MODEL_PATH", "/path/to/Qwen3-VL-2B-MoE-4x")
+PROCESSOR_PATH = os.environ.get("PROCESSOR_PATH", MOE_MODEL_PATH)
+DATA_PATH = os.environ.get("DATA_PATH", "/path/to/warmup_pairwise.jsonl")
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/path/to/Qwen3-VL-2B-4X-Moe-warmup")
+IMAGE_BASE_PATH = os.environ.get("IMAGE_BASE_PATH", "")
 
 SYSTEM_PROMPT = """You are a helpful scientific assistant.
 Answer the user's question based on the image provided.
@@ -48,14 +50,14 @@ Your output must strictly follow this XML format:
 </answer>
 """
 
-MAX_LENGTH = 8192
-BATCH_SIZE = 4
-LEARNING_RATE = 1e-5
-NUM_EPOCHS = 1
-GRADIENT_ACCUMULATION_STEPS = 4
-WARMUP_RATIO = 0.1
-SEED = 42
-GRADIENT_CHECKPOINTING = True
+MAX_LENGTH = int(os.environ.get("MAX_LENGTH", 8192))
+BATCH_SIZE = int(os.environ.get("BATCH_SIZE", 4))
+LEARNING_RATE = float(os.environ.get("LEARNING_RATE", 1e-5))
+NUM_EPOCHS = int(os.environ.get("NUM_EPOCHS", 1))
+GRADIENT_ACCUMULATION_STEPS = int(os.environ.get("GRADIENT_ACCUMULATION_STEPS", 4))
+WARMUP_RATIO = float(os.environ.get("WARMUP_RATIO", 0.1))
+SEED = int(os.environ.get("SEED", 42))
+GRADIENT_CHECKPOINTING = os.environ.get("GRADIENT_CHECKPOINTING", "1") not in ("0", "false", "False")
 
 
 def load_image(image_source, max_size=560):

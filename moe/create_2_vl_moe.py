@@ -409,8 +409,8 @@ class Qwen2VLMoEDiscriminator(nn.Module):
 # ============ 使用示例 ============
 if __name__ == "__main__":
     # 配置
-    model_path = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-Instruct"
-    save_path = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-MoE-4x"
+    model_path = "/path/to/models/Qwen2-VL-2B-Instruct"
+    save_path = "/path/to/models/Qwen2-VL-2B-MoE-4x"
     
     # 1. Sparse Upcycling 创建 MoE 模型
     moe_model, moe_config = upcycle_qwen2_vl_to_moe(

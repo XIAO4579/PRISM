@@ -26,10 +26,10 @@ from value_head import Qwen2VLMoeValueHead, get_last_token_scores
 
 
 # --- 配置 ---
-MOE_MODEL_PATH = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-MoE-4x"  # Qwen2-VL MoE 模型
-PROCESSOR_PATH = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-MoE-4x"
-DATA_PATH = "/data/home/scwb352/run/test/data_pipeline/data_process_7.6K/teacher_student_merged_fixed.jsonl"
-OUTPUT_DIR = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-MoE-4x-warmup-distill"
+MOE_MODEL_PATH = "/path/to/models/Qwen2-VL-2B-MoE-4x"  # Qwen2-VL MoE 模型
+PROCESSOR_PATH = "/path/to/models/Qwen2-VL-2B-MoE-4x"
+DATA_PATH = "/path/to/datasets/teacher_student_merged_fixed.jsonl"
+OUTPUT_DIR = "/path/to/models/Qwen2-VL-2B-MoE-4x-warmup-distill"
 IMAGE_BASE_PATH = ""  # 图片基础路径，用于拼接相对路径
 
 MAX_LENGTH = 4096

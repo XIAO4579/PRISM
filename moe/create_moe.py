@@ -149,7 +149,7 @@ def upcycle_qwen3_to_moe(
 
 # ============ 使用示例 ============
 if __name__ == "__main__":
-    model_path = "/data/user/swang886/gad_project/models/Qwen3-1.7B"
+    model_path = "/path/to/models/Qwen3-1.7B"
     
     # 1. Sparse Upcycling 创建 MoE 模型
     moe_model, moe_config = upcycle_qwen3_to_moe(
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     print(f"Aux loss: {aux_loss}")
     
     # 4. 保存模型 (可以用 transformers 标准方式保存和加载)
-    save_path = "/data/user/swang886/gad_project/models/Qwen3-1.7B-MoE-4x"
+    save_path = "/path/to/models/Qwen3-1.7B-MoE-4x"
     print(f"Saving MoE model to: {save_path}")
     
     # 保存模型权重和配置

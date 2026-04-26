@@ -1,9 +1,12 @@
 #!/bin/bash
-source /data/user/swang886/verl_0.6_env/bin/activate
+# Single-GPU launcher for the dense Qwen3-VL warmup baseline (debugging).
 
-export CUDA_VISIBLE_DEVICES=0
+set -euo pipefail
 
-cd /data/user/swang886/gad_project/mm_gad/moe/dense_model
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "${SCRIPT_DIR}"
 
 accelerate launch \
     --num_processes 1 \

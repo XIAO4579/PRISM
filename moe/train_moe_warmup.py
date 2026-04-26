@@ -24,10 +24,10 @@ from tqdm import tqdm
 
 
 # --- 配置 ---
-MOE_MODEL_PATH = "/data/user/swang886/gad_project/models/Qwen3-1.7B-MoE-4x"
-TOKENIZER_PATH = "/data/user/swang886/gad_project/models/Qwen3-1.7B-MoE-4x"
-DATA_PATH = "/data/user/swang886/gad_project/datasets/data_process/data_pipeline/data_process_7.6K/dataset_process/api_output_qwen3_full_sft_warmup_dataset/qwen3_vl_moe_warmup_pairwise_120k.jsonl"
-OUTPUT_DIR = "/data/user/swang886/gad_project/models/Qwen3-1.7B-4X-Moe-warmup"
+MOE_MODEL_PATH = "/path/to/models/Qwen3-1.7B-MoE-4x"
+TOKENIZER_PATH = "/path/to/models/Qwen3-1.7B-MoE-4x"
+DATA_PATH = "/path/to/datasets/qwen3_moe_warmup_pairwise_120k.jsonl"
+OUTPUT_DIR = "/path/to/models/Qwen3-1.7B-4X-Moe-warmup"
 
 SYSTEM_PROMPT = """You are a helpful scientific assistant.
 Answer the user's question based on the image provided.

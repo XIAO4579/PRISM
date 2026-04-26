@@ -6,7 +6,7 @@ import os
 import torch
 from safetensors.torch import load_file
 
-MODEL_PATH = "/training-data/sudongwang/model/Qwen3-VL-2B-MoE-4x-warmup-gemini-distill"
+MODEL_PATH = ""
 
 def convert_safetensors_to_pt(model_path):
     safetensors_path = os.path.join(model_path, "value_head.safetensors")

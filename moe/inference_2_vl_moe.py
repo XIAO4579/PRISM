@@ -21,8 +21,8 @@ from value_head import Qwen2VLMoeValueHead, get_last_token_scores
 
 
 # --- 配置 ---
-MODEL_PATH = "/data/home/scwb352/run/test/model/Qwen2-VL-2B-MoE-4x-warmup-distill"  # 训练好的模型
-DATA_PATH = "/data/home/scwb352/run/test/data_pipeline/data_process_7.6K/teacher_student_merged_fixed.jsonl"
+MODEL_PATH = "/path/to/models/Qwen2-VL-2B-MoE-4x-warmup-distill"  # 训练好的模型
+DATA_PATH = "/path/to/datasets/teacher_student_merged_fixed.jsonl"
 IMAGE_BASE_PATH = ""  # 图片基础路径
 NUM_SAMPLES = 400  # 随机采样数量
 MAX_LENGTH = 8192

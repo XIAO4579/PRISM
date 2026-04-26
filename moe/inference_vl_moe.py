@@ -21,8 +21,8 @@ from value_head import Qwen3VLMoeValueHead, get_last_token_scores
 
 
 # --- 配置 ---
-MODEL_PATH = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-4X-Moe-warmup"  # 训练好的模型
-DATA_PATH = "/data/home/scwb352/run/test/data_pipeline/data_process_7.6K/dataset_process/api_output_qwen3_full_sft/warmup_pairwise.jsonl"
+MODEL_PATH = "/path/to/models/Qwen3-VL-2B-4X-Moe-warmup"  # 训练好的模型
+DATA_PATH = "/path/to/datasets/warmup_pairwise.jsonl"
 IMAGE_BASE_PATH = ""  # 图片基础路径
 NUM_SAMPLES = 800  # 随机采样数量
 MAX_LENGTH = 8192

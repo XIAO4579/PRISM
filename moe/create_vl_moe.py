@@ -402,49 +402,69 @@ class Qwen3VLMoEDiscriminator(nn.Module):
         return scores, outputs.aux_loss
 
 
-# ============ 使用示例 ============
-if __name__ == "__main__":
-    # 配置
-    model_path = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-Instruct"
-    save_path = "/data/home/scwb352/run/test/model/Qwen3-VL-2B-MoE-4x"
-    
-    # 1. Sparse Upcycling 创建 MoE 模型
-    moe_model, moe_config = upcycle_qwen3_vl_to_moe(
-        dense_model_path=model_path,
-        num_experts=4,
-        num_experts_per_tok=2,
-        noise_std=0.01,
+# ============ CLI ============
+def _parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Sparse-upcycle a dense Qwen3-VL checkpoint into a "
+                    "Qwen3VLMoe checkpoint.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    
+    parser.add_argument(
+        "--dense-model",
+        required=True,
+        help="Path to (or HF id of) the dense Qwen3-VL checkpoint to upcycle.",
+    )
+    parser.add_argument(
+        "--save-path",
+        required=True,
+        help="Directory to save the upcycled MoE checkpoint into.",
+    )
+    parser.add_argument("--num-experts", type=int, default=4)
+    parser.add_argument("--num-experts-per-tok", type=int, default=2)
+    parser.add_argument("--noise-std", type=float, default=0.01)
+    parser.add_argument(
+        "--no-tests",
+        action="store_true",
+        help="Skip the post-creation forward / discriminator sanity checks.",
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = _parse_args()
+
+    moe_model, moe_config = upcycle_qwen3_vl_to_moe(
+        dense_model_path=args.dense_model,
+        num_experts=args.num_experts,
+        num_experts_per_tok=args.num_experts_per_tok,
+        noise_std=args.noise_std,
+    )
+
     moe_model.cuda()
     moe_model.eval()
-    
-    # 2. 加载 processor
-    processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
-    
-    # 3. 测试纯文本 forward
-    test_text_only_forward(moe_model, processor)
-    
-    # 4. 测试带图像的 forward
-    test_image_forward(moe_model, processor)
-    
-    # 5. 测试 Discriminator（可选）
-    print("\n=== Testing Discriminator ===")
-    discriminator = Qwen3VLMoEDiscriminator(moe_model).cuda()
-    
-    messages = [{"role": "user", "content": "Test input"}]
-    text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = processor(text=[text], return_tensors="pt").to("cuda")
-    
-    scores, aux_loss = discriminator(**inputs)
-    print(f"  Scores: {scores}")
-    print(f"  Aux loss: {aux_loss}")
-    
-    # 6. 保存模型
-    save_moe_model(moe_model, processor, save_path)
-    
-    # 7. 验证加载
+
+    processor = AutoProcessor.from_pretrained(args.dense_model, trust_remote_code=True)
+
+    if not args.no_tests:
+        test_text_only_forward(moe_model, processor)
+        test_image_forward(moe_model, processor)
+
+        print("\n=== Testing Discriminator ===")
+        discriminator = Qwen3VLMoEDiscriminator(moe_model).cuda()
+        messages = [{"role": "user", "content": "Test input"}]
+        text = processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        inputs = processor(text=[text], return_tensors="pt").to("cuda")
+        scores, aux_loss = discriminator(**inputs)
+        print(f"  Scores: {scores}")
+        print(f"  Aux loss: {aux_loss}")
+
+    save_moe_model(moe_model, processor, args.save_path)
+
     del moe_model
     torch.cuda.empty_cache()
-    
-    verify_saved_model(save_path)
+
+    if not args.no_tests:
+        verify_saved_model(args.save_path)

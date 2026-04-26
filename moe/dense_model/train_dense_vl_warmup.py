@@ -30,9 +30,9 @@ from value_head import Qwen3VLDenseValueHead, get_last_token_scores
 
 
 # --- 配置 ---
-DENSE_MODEL_PATH = "/data/user/swang886/gad_project/models/Qwen3-VL-4B-Instruct"
-DATA_PATH = "/data/user/swang886/gad_project/datasets/data_process/data_pipeline/data_process_7.6K/dataset_process/api_output_qwen3_full_sft_warmup_dataset/qwen3_vl_moe_warmup_pairwise_120k.jsonl"
-OUTPUT_DIR = "/data/user/swang886/gad_project/models/Qwen3-VL-4B-dense-warmup"
+DENSE_MODEL_PATH = "/path/to/models/Qwen3-VL-4B-Instruct"
+DATA_PATH = "/path/to/datasets/qwen3_vl_moe_warmup_pairwise_120k.jsonl"
+OUTPUT_DIR = "/path/to/models/Qwen3-VL-4B-dense-warmup"
 
 SYSTEM_PROMPT = """You are a helpful scientific assistant.
 Answer the user's question based on the image provided.

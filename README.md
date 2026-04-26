@@ -96,7 +96,7 @@ under `scripts/train/experiment/`.
 
 | Stage | Tool / Script | Initialization | Objective |
 |---|---|---|---|
-| **1. SFT**         | LLaMA-Factory                                                                             | Qwen3-VL base                       | Standard supervised fine-tuning on multimodal demonstrations |
+| **1. SFT**         | LLaMA-Factory                                                                             | Qwen3-VL Instruct                       | Standard supervised fine-tuning on multimodal demonstrations |
 | **2. Alignment**   | `qwen3_vl_prism.sh`                                                                       | post-SFT checkpoint                 | On-policy adversarial distillation against an MoE discriminator |
 | **3. RLVR**        | `qwen3_vl_{grpo,dapo,gspo}_after_prism.sh`<br/>(collectively `qwen3_vl_xxpo_after_prism`) | post-alignment (PRISM) checkpoint   | Verifiable-reward RL (accuracy + format) |
 
@@ -185,17 +185,81 @@ huggingface-cli download <ORG>/<PRISM_ALIGNMENT_DATASET> \
 #### 3.2 Model preparation
 
 Stage 2 needs two checkpoints: the **post-SFT policy** (from §2 or downloaded
-via the "Skip Stage 1" note above) and the **MoE discriminator**:
+via the "Skip Stage 1" note above) and the **MoE discriminator** (the
+adversary).
+
+##### 3.2.a Use the released, pre-warmed MoE discriminator
+
+The merged + warmed-up MoE discriminator from the paper is published on
+HuggingFace. Pull it directly and skip §3.2.b:
 
 ```bash
-# MoE discriminator (perception + reasoning experts)
-huggingface-cli download <ORG>/<PRISM_MOE_DISCRIMINATOR> \
+huggingface-cli download prism-vlm/Qwen3-VL-2B-4X-Moe-warmup-120k \
     --repo-type model \
-    --local-dir /path/to/models/<PRISM_MOE_DISCRIMINATOR>
+    --local-dir /path/to/models/Qwen3-VL-2B-4X-Moe-warmup-120k
 ```
 
-> Placeholder: `<PRISM_MOE_DISCRIMINATOR>` will be filled in once the public
-> release is finalized.
+##### 3.2.b Train the MoE discriminator from scratch
+
+Two steps: (1) sparse-upcycle a dense Qwen3-VL into a 4-expert MoE checkpoint,
+and (2) pairwise-warmup that MoE on the teacher / student response corpus.
+Both steps are wrapped in `scripts/train/moe_warmup/`.
+
+**(1) Sparse upcycling.** Edit the path block at the top of
+`scripts/train/moe_warmup/create_moe.sh` (or override via env vars) so it
+points at the dense checkpoint and the desired output directory:
+
+```bash
+# inside create_moe.sh
+PRISM_ROOT=/path/to/PRISM
+DENSE_MODEL=/path/to/models/Qwen3-VL-2B-Instruct
+OUTPUT_MOE_DIR=/path/to/models/Qwen3-VL-2B-MoE-4x
+NUM_EXPERTS=4
+NUM_EXPERTS_PER_TOK=2
+```
+
+Then run:
+
+```bash
+bash scripts/train/moe_warmup/create_moe.sh
+```
+
+This produces a fresh `Qwen3VLMoeForConditionalGeneration` checkpoint at
+`OUTPUT_MOE_DIR` (vision encoder + attention + embeddings copied from the
+dense model; per-expert MLPs initialized from the dense MLP plus small
+gaussian noise; routers randomly initialized).
+
+**(2) Pairwise warmup.** The warmup data — 120K teacher / student response
+pairs, one perception (`caption`) and one reasoning (`cot`) comparison per
+prompt — is published on HuggingFace:
+
+```bash
+huggingface-cli download prism-vlm/qwen3_vl_moe_warmup_pairwise_120k \
+    --repo-type dataset \
+    --local-dir /path/to/datasets/qwen3_vl_moe_warmup_pairwise_120k
+```
+
+Edit the path block at the top of
+`scripts/train/moe_warmup/train_moe_warmup.sh`:
+
+```bash
+# inside train_moe_warmup.sh
+PRISM_ROOT=/path/to/PRISM
+MOE_MODEL_PATH=/path/to/models/Qwen3-VL-2B-MoE-4x      # output of step (1)
+DATA_PATH=/path/to/datasets/qwen3_vl_moe_warmup_pairwise_120k/warmup_pairwise.jsonl
+OUTPUT_DIR=/path/to/models/Qwen3-VL-2B-4X-Moe-warmup-120k
+NUM_PROCESSES=8                                          # GPUs on this node
+```
+
+Then run (uses `accelerate launch` + DeepSpeed ZeRO-2 under the hood):
+
+```bash
+bash scripts/train/moe_warmup/train_moe_warmup.sh
+```
+
+The resulting checkpoint at `OUTPUT_DIR` is functionally equivalent to
+`prism-vlm/Qwen3-VL-2B-4X-Moe-warmup-120k` and can be plugged into
+`critic.model.path` in §3.3.
 
 #### 3.3 Launch alignment
 
@@ -208,7 +272,7 @@ BASE_DIR=/path/to/PRISM
 EXPERIMENT_NAME=qwen3_vl_prism
 data.train_files=/path/to/datasets/<PRISM_ALIGNMENT_DATASET>/...
 actor_rollout_ref.model.path=/path/to/models/Qwen3-VL-4B-Instruct-SFT
-critic.model.path=/path/to/models/<PRISM_MOE_DISCRIMINATOR>
+critic.model.path=/path/to/models/Qwen3-VL-2B-4X-Moe-warmup-120k
 ```
 
 Single-node:
@@ -437,11 +501,12 @@ alignment and RLVR stages are run with the bundled `verl`.
 ```
 PRISM/
 ├── scripts/
-│   ├── train/experiment/   # training entrypoints + launch.sh
+│   ├── train/experiment/   # Stage 2 / Stage 3 training entrypoints + launch.sh
+│   ├── train/moe_warmup/   # Stage 2 (optional): MoE discriminator from scratch
 │   └── eval/               # lmms-eval reference + custom tasks
 ├── verl/                   # verl framework (GRPO / DAPO / GSPO recipes)
 ├── transformers-4.57.0/    # patched transformers (editable install)
-├── moe/                    # MoE modules used by the training recipes
+├── moe/                    # MoE upcycling + warmup implementations
 ├── tools/                  # misc helpers
 └── difference/             # diff reports vs. upstream verl / transformers (CN + EN)
 ```

@@ -1,4 +1,13 @@
 #!/bin/bash
-export PYTHONPATH="/data/home/scwb352/run/test/mm_gad/transformers-4.57.0/src:${PYTHONPATH}" 
+# Pairwise warmup for the upcycled Qwen2-VL MoE discriminator.
+# Set PRISM_ROOT to the repo root before running.
 
-accelerate launch --num_processes=8 /data/home/scwb352/run/test/dev/mm_gad/moe/train_moe_2_vl_warmup.py
+set -euo pipefail
+
+PRISM_ROOT="${PRISM_ROOT:-/path/to/PRISM}"
+export PYTHONPATH="${PRISM_ROOT}/moe:${PRISM_ROOT}/transformers-4.57.0/src:${PYTHONPATH:-}"
+
+NUM_PROCESSES="${NUM_PROCESSES:-8}"
+
+accelerate launch --num_processes="${NUM_PROCESSES}" \
+    "${PRISM_ROOT}/moe/train_moe_2_vl_warmup.py"

@@ -1,25 +1,18 @@
 #!/bin/bash
-#SBATCH -p acd_u
-#SBATCH -n 32
-#SBATCH --mem=960G
-#SBATCH --gres=gpu:8
-#SBATCH -o /data/user/swang886/gad_project/mm_gad/logs/moe-warmup_text_%j.out
-#SBATCH -e /data/user/swang886/gad_project/mm_gad/logs/moe-warmup_text_%j.err
-#SBATCH -J moe-warmup-text
+# Text-only MoE warmup launcher (Qwen3 dense -> MoE upcycled).
+# Set PRISM_ROOT to the repo root and have the patched transformers on
+# PYTHONPATH; expects accelerate / deepspeed to be installed.
 
-source /data/user/swang886/llama_factory_env/bin/activate
-cd /data/user/swang886/gad_project/mm_gad
+set -euo pipefail
 
-# unset ROCR_VISIBLE_DEVICES
-# unset CC CXX CUDAHOSTCXX
+PRISM_ROOT="${PRISM_ROOT:-/path/to/PRISM}"
+export PYTHONPATH="${PRISM_ROOT}/transformers-4.57.0/src:${PYTHONPATH:-}"
 
-# set -x  
-export PYTHONPATH="/data/user/swang886/gad_project/mm_gad/transformers-4.57.0/src:${PYTHONPATH}"
-
-SCRIPT_DIR="/data/user/swang886/gad_project/mm_gad/moe"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+NUM_PROCESSES="${NUM_PROCESSES:-8}"
 
 accelerate launch \
-    --num_processes=1 \
+    --num_processes="${NUM_PROCESSES}" \
     --mixed_precision=bf16 \
     --use_deepspeed \
     --deepspeed_config_file "${SCRIPT_DIR}/ds_z2_config.json" \
