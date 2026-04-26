@@ -171,16 +171,15 @@ an **MoE (perception + reasoning) discriminator**. The output is a
 
 Stage 2 consumes the **alignment-stage** corpus — the on-policy prompts used
 by `qwen3_vl_prism.sh` for adversarial distillation against the MoE
-discriminator:
+discriminator. It lives in the shared `prism-vlm/rl_dataset` HuggingFace
+dataset repo as `rl_training_data_5.9k.parquet`:
 
 ```bash
-huggingface-cli download <ORG>/<PRISM_ALIGNMENT_DATASET> \
+huggingface-cli download prism-vlm/rl_dataset \
+    rl_training_data_5.9k.parquet \
     --repo-type dataset \
-    --local-dir /path/to/datasets/<PRISM_ALIGNMENT_DATASET>
+    --local-dir /path/to/datasets/prism_rl_dataset
 ```
-
-> Placeholder: `<ORG>/<PRISM_ALIGNMENT_DATASET>` will be filled in once the
-> public release is finalized.
 
 #### 3.2 Model preparation
 
@@ -270,7 +269,7 @@ the top to match what you downloaded:
 # inside qwen3_vl_prism.sh
 BASE_DIR=/path/to/PRISM
 EXPERIMENT_NAME=qwen3_vl_prism
-data.train_files=/path/to/datasets/<PRISM_ALIGNMENT_DATASET>/...
+data.train_files=/path/to/datasets/prism_rl_dataset/rl_training_data_5.9k.parquet
 actor_rollout_ref.model.path=/path/to/models/Qwen3-VL-4B-Instruct-SFT
 critic.model.path=/path/to/models/Qwen3-VL-2B-4X-Moe-warmup-120k
 ```
@@ -288,18 +287,14 @@ bash scripts/train/experiment/launch.sh \
      scripts/train/experiment/qwen3_vl_prism.sh
 ```
 
-> **Skip Stage 2.** The post-alignment (PRISM) checkpoints used in our paper
-> are released on HuggingFace; download one of them and proceed directly to
-> §4:
+> **Skip Stage 2.** The post-alignment (PRISM) checkpoint used in our paper
+> is released on HuggingFace; download it and proceed directly to §4:
 >
 > ```bash
-> huggingface-cli download <ORG>/<PRISM_ALIGNED_CHECKPOINT> \
+> huggingface-cli download prism-vlm/Qwen3-VL-4B-Instruct-SFT-PRISM \
 >     --repo-type model \
->     --local-dir /path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+>     --local-dir /path/to/models/Qwen3-VL-4B-Instruct-SFT-PRISM
 > ```
->
-> Placeholder: `<PRISM_ALIGNED_CHECKPOINT>` will be filled in once the public
-> release is finalized.
 
 ### 4. Stage 3 — RLVR after PRISM
 
@@ -319,16 +314,15 @@ These are referred to collectively as `qwen3_vl_xxpo_after_prism`, where
 #### 4.1 Data preparation
 
 Stage 3 consumes the **RL training set** with verifiable rewards (final-answer
-correctness + format):
+correctness + format). It lives in the same `prism-vlm/rl_dataset` repo as
+Stage 2's data, under the `rl_training_data_filtered_2k.parquet` file:
 
 ```bash
-huggingface-cli download <ORG>/<PRISM_RL_DATASET> \
+huggingface-cli download prism-vlm/rl_dataset \
+    rl_training_data_filtered_2k.parquet \
     --repo-type dataset \
-    --local-dir /path/to/datasets/<PRISM_RL_DATASET>
+    --local-dir /path/to/datasets/prism_rl_dataset
 ```
-
-> Placeholder: `<PRISM_RL_DATASET>` will be filled in once the public release
-> is finalized.
 
 #### 4.2 Model preparation
 
@@ -338,9 +332,9 @@ produced by your own Stage 2 run, or the released checkpoint from the
 
 ```bash
 # Option A: use the released post-alignment checkpoint
-huggingface-cli download <ORG>/<PRISM_ALIGNED_CHECKPOINT> \
+huggingface-cli download prism-vlm/Qwen3-VL-4B-Instruct-SFT-PRISM \
     --repo-type model \
-    --local-dir /path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+    --local-dir /path/to/models/Qwen3-VL-4B-Instruct-SFT-PRISM
 
 # Option B: point at the checkpoint dumped by your own qwen3_vl_prism.sh, e.g.
 #   /path/to/PRISM/checkpoints/qwen3_vl_prism/<step>/actor/huggingface
@@ -358,8 +352,8 @@ to update:
 # inside qwen3_vl_xxpo_after_prism.sh
 BASE_DIR=/path/to/PRISM
 EXPERIMENT_NAME=qwen3_vl_<xxpo>_after_prism
-data.train_files=/path/to/datasets/<PRISM_RL_DATASET>/...
-actor_rollout_ref.model.path=/path/to/models/<PRISM_ALIGNED_CHECKPOINT>
+data.train_files=/path/to/datasets/prism_rl_dataset/rl_training_data_filtered_2k.parquet
+actor_rollout_ref.model.path=/path/to/models/Qwen3-VL-4B-Instruct-SFT-PRISM
 ```
 
 Single-node:

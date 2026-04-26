@@ -59,14 +59,14 @@ python3 -m verl.trainer.main_ppo \
     actor_rollout_ref.actor.policy_loss.loss_mode=${loss_mode} \
     data.prompt_key=prompt \
     data.train_files=/path/to/PRISM/checkpoints/filter_output/rl_training_data_filtered.parquet \
-    data.val_files=/path/to/gad_project/datasets/geo3k/test.parquet \
+    data.val_files=/path/to/PRISM/datasets/geo3k/test.parquet \
     data.shuffle=True \
     data.truncation=right \
     data.filter_overlong_prompts=True \
     data.train_batch_size=${train_batch_size} \
     data.max_prompt_length=${max_prompt_length} \
     data.max_response_length=${max_response_length} \
-    actor_rollout_ref.model.path=/path/to/gad_project/models/Qwen3-VL-4B-Instruct-SFT-MMR1-TechAI-Gemini-Distill-exploration2-method1-stage1-500-steps \
+    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-MMR1-TechAI-Gemini-Distill-exploration2-method1-stage1-500-steps \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.model.enable_gradient_checkpointing=True \
     actor_rollout_ref.rollout.n=${n_resp_per_prompt} \

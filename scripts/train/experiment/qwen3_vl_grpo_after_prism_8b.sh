@@ -12,19 +12,19 @@ export WANDB_PROJECT='PRISM'
 export WANDB_API_KEY='<YOUR_WANDB_API_KEY>'
 
 BASE_DIR=${BASE_DIR:-/path/to/PRISM}
-EXPERIMENT_NAME="qwen3_vl_grpo_after_prism"
+EXPERIMENT_NAME="qwen3_vl_grpo_after_prism_8b"
 
 python3 -m verl.trainer.main_ppo \
     algorithm.adv_estimator=grpo \
     data.prompt_key=prompt \
-    data.train_files=/path/to/PRISM/checkpoints/filter_output/rl_training_data_filtered.parquet \
+    data.train_files=/path/to/PRISM/checkpoints/filter_output/rl_training_data_10k.parquet \
     data.val_files=/path/to/PRISM/datasets/geo3k/test.parquet \
     data.train_batch_size=32 \
     data.max_prompt_length=2048 \
     data.max_response_length=8192 \
     data.filter_overlong_prompts=True \
     data.truncation=right \
-    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-4B-Instruct-SFT-MMR1-TechAI-Gemini-Distill-exploration2-method1-stage1-500-steps \
+    actor_rollout_ref.model.path=/path/to/PRISM/models/Qwen3-VL-8B-Instruct-SFT-PRISM \
     actor_rollout_ref.actor.optim.lr=1e-6 \
     actor_rollout_ref.model.use_remove_padding=True \
     actor_rollout_ref.actor.ppo_mini_batch_size=32 \
