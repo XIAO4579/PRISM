@@ -4,9 +4,9 @@
 
 [![arXiv](https://img.shields.io/badge/Paper-000000?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2604.28123)
 [![Website](https://img.shields.io/badge/Website-000000?style=for-the-badge&logo=google-chrome&logoColor=white)](#)
-[![GitHub](https://img.shields.io/badge/Code-000000?style=for-the-badge&logo=github&logoColor=white)](#)
-[![Data](https://img.shields.io/badge/Data-0040A1?style=for-the-badge&logo=huggingface&logoColor=ffffff)](#)
-[![Models](https://img.shields.io/badge/Models-5EDDD2?style=for-the-badge&logo=huggingface&logoColor=ffffff)](#)
+[![GitHub](https://img.shields.io/badge/Code-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XIAO4579/PRISM)
+[![Data](https://img.shields.io/badge/Data-0040A1?style=for-the-badge&logo=huggingface&logoColor=ffffff)](https://huggingface.co/prism-vlm)
+[![Models](https://img.shields.io/badge/Models-5EDDD2?style=for-the-badge&logo=huggingface&logoColor=ffffff)](https://huggingface.co/prism-vlm)
 
 </div>
 
@@ -14,7 +14,7 @@
 
 ## 🎉 News
 
-- **[2026-04-25]** We release the **code**, **data**, and **model checkpoints** of PRISM. Check out the [PRISM Collection](https://github.com/XIAO4579/PRISM).
+- **[2026-05-1]** We release the **code**, **data**, and **model checkpoints** of PRISM. Check out the [PRISM Collection](https://github.com/XIAO4579/PRISM).
 
 ---
 
