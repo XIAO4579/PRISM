@@ -1,4 +1,4 @@
-# PRISM: PRe-alignment via on-policy dIStillation for Multimodal RL
+# PRISM: Pre-alignment via Black-box On-policy Distillation for Multimodal Reinforcement Learning
 
 <div align="center">
 
