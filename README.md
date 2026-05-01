@@ -14,7 +14,7 @@
 
 ## 🎉 News
 
-- **[2026-05-01]** We release our **paper** on arXiv: [PRISM: Pre-alignment via Black-box On-policy Distillation for Multimodal Reinforcement Learning](https://arxiv.org/abs/2604.28123).
+- **[2026-05-01]** We release our **paper** on arXiv: [Beyond SFT-to-RL: Pre-alignment via Black-box On-policy Distillation for Multimodal Reinforcement Learning](https://arxiv.org/abs/2604.28123).
 - **[2026-05-01]** We release the **code**, **data**, and **model checkpoints** of PRISM. Check out the [PRISM Collection](https://github.com/XIAO4579/PRISM).
 
 ---
