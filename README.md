@@ -14,7 +14,7 @@
 
 ## 🎉 News
 
-- **[2026-05-1]** We release the **code**, **data**, and **model checkpoints** of PRISM. Check out the [PRISM Collection](https://github.com/XIAO4579/PRISM).
+- **[2026-05-01]** We release the **code**, **data**, and **model checkpoints** of PRISM. Check out the [PRISM Collection](https://github.com/XIAO4579/PRISM).
 
 ---
 
