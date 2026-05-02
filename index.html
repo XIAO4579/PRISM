@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="PRISM: Pre-alignment via Black-box On-policy Distillation for Multimodal RL">
+    <meta property="og:title" content="PRISM: Pre-alignment via Black-box On-policy Distillation for Multimodal RL">
+    <meta property="og:description" content="Beyond SFT-to-RL: Pre-alignment via Black-box On-policy Distillation for Multimodal RL.">
+    <meta property="og:url" content="https://github.com/XIAO4579/PRISM">
+    <meta property="og:image" content="static/images/overview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <title>PRISM</title>
+
+    <link rel="icon" type="image/x-icon" href="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro">
+    <link rel="stylesheet" href="static/css/bulma.min.css">
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+    <link rel="stylesheet" href="static/css/index.css">
+
+    <script src="static/js/jquery.min.js"></script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/fontawesome.all.min.js" defer></script>
+    <script src="static/js/bulma-carousel.min.js"></script>
+    <script src="static/js/bulma-slider.min.js"></script>
+    <script src="static/js/index.js"></script>
+
+    <style>
+        .buttonGroup {
+            text-align: center;
+        }
+        .buttonGroup > button {
+            padding: 15px;
+            color: white;
+            background-color: #363636;
+            border-radius: 5px;
+        }
+        .buttonGroup > button:hover {
+            box-shadow: 5px;
+        }
+        .icon-emoji {
+            font-size: 1.1em;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .text-green {
+            color: #16a34a;
+        }
+        .text-red {
+            color: #dc2626;
+        }
+        .subtitle code {
+            background-color: #f5f5f5;
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+        .table th,
+        .table td,
+        .table thead th,
+        .table tbody td {
+            vertical-align: middle !important;
+            text-align: center !important;
+        }
+        .table tbody td.text-left {
+            text-align: left !important;
+        }
+        .table tbody td.text-right {
+            text-align: right !important;
+        }
+        .table thead th {
+            background-color: #f5f5f5;
+        }
+        .table tr.section-header td {
+            border: none !important;
+            background-color: transparent !important;
+            padding-top: 0.8rem;
+            padding-bottom: 0.3rem;
+        }
+        .section.hero.is-light {
+            padding: 0.75rem 0;
+        }
+        .section.hero.is-light .title {
+            margin-bottom: 0 !important;
+            white-space: nowrap;
+        }
+        .section.hero.is-light .title.wrap-title {
+            white-space: normal !important;
+        }
+        .section.hero.is-light .title.with-margin {
+            margin-bottom: 0.75rem !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero: Title + Authors + Links -->
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column has-text-centered">
+                        <h1 class="title is-1 vj-hero-title-cyber">
+                            Beyond SFT-to-RL: Pre-alignment via Black-box On-policy Distillation for Multimodal RL
+                        </h1>
+
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block"><a href="https://xiao4579.github.io/" target="_blank">Sudong Wang</a><sup>1,*</sup>,</span>
+                            <span class="author-block">Weiquan Huang<sup>1,*</sup>,</span>
+                            <span class="author-block">Xiaomin Yu<sup>1</sup>,</span>
+                            <span class="author-block"><a href="https://mwxely.github.io/" target="_blank">Zuhao Yang</a><sup>3</sup>,</span>
+                            <span class="author-block">Hehai Lin<sup>1</sup>,</span>
+                            <span class="author-block"><a href="https://kemingwu.github.io/" target="_blank">Keming Wu</a><sup>2</sup>,</span>
+                            <span class="author-block">Chaojun Xiao<sup>2</sup>,</span>
+                            <span class="author-block">Chen Chen<sup>2</sup>,</span>
+                            <span class="author-block">Wenxuan Wang<sup>4</sup>,</span>
+                            <span class="author-block">Beier Zhu<sup>5</sup>,</span>
+                            <span class="author-block">Yunjian Zhang<sup>6,&dagger;</sup>,</span>
+                            <span class="author-block">Chengwei Qin<sup>1,&dagger;</sup></span>
+                        </div>
+
+                        <div class="is-size-5 publication-authors">
+                            <span class="author-block">
+                                <sup>1</sup>HKUST(GZ)&nbsp;&nbsp;
+                                <sup>2</sup>Tsinghua University&nbsp;&nbsp;
+                                <sup>3</sup>NTU&nbsp;&nbsp;
+                                <sup>4</sup>RUC&nbsp;&nbsp;
+                                <sup>5</sup>USTC&nbsp;&nbsp;
+                                <sup>6</sup>UCAS
+                            </span>
+                            <br>
+                            <span class="author-block"><sup>*</sup> Equal Contribution</span>
+                            &nbsp;&nbsp;&nbsp;
+                            <span class="author-block"><sup>&dagger;</sup> Corresponding Author</span>
+                            <br>
+                            <span class="author-block">Email Contact:</span>
+                            <span class="author-block">
+                                <a href="mailto:swang886@connect.hkust-gz.edu.cn">swang886@connect.hkust-gz.edu.cn</a>,
+                                <a href="mailto:whuang491@connect.hkust-gz.edu.cn">whuang491@connect.hkust-gz.edu.cn</a>
+                            </span>
+                        </div>
+
+                        <div class="column has-text-centered">
+                            <div class="publication-links">
+                                <span class="link-block">
+                                    <a href="https://arxiv.org/abs/2604.28123" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="ai ai-arxiv"></i></span>
+                                        <span>arXiv</span>
+                                    </a>
+                                </span>
+                                <span class="link-block">
+                                    <a href="https://github.com/XIAO4579/PRISM" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="fab fa-github"></i></span>
+                                        <span>Code</span>
+                                    </a>
+                                </span>
+                                <span class="link-block">
+                                    <a href="https://huggingface.co/prism-vlm" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon"><i class="fas fa-database"></i></span>
+                                        <span>Data</span>
+                                    </a>
+                                </span>
+                                <span class="link-block">
+                                    <a href="https://huggingface.co/prism-vlm" target="_blank" class="external-link button is-normal is-rounded is-dark">
+                                        <span class="icon icon-emoji">&#x1F917;</span>
+                                        <span>Model</span>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Abstract -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h1 class="title is-3 with-margin">Abstract</h1>
+                    <div class="content has-text-justified">
+                        <p>
+                            The standard post-training recipe for large multimodal models (LMMs) applies supervised fine-tuning (SFT) on curated demonstrations followed by reinforcement learning with verifiable rewards (RLVR). However, SFT introduces <span class="text-red">distributional drift</span> that neither preserves the model's original capabilities nor faithfully matches the supervision distribution. This problem is further amplified in multimodal reasoning, where perception errors and reasoning failures follow distinct drift patterns that compound during subsequent RL.
+                        </p>
+                        <p>
+                            We introduce <b>PRISM</b>, a three-stage pipeline that mitigates this drift by inserting an explicit <span class="text-green">distribution-alignment stage</span> between SFT and RLVR. Building on the principle of on-policy distillation (OPD), PRISM casts alignment as a black-box, response-level adversarial game between the policy and a <span class="text-green">Mixture-of-Experts (MoE) discriminator</span> with dedicated perception and reasoning experts, providing disentangled corrective signals that steer the policy toward the supervision distribution without requiring access to teacher logits.
+                        </p>
+                        <p>
+                            Experiments on Qwen3-VL show that PRISM consistently improves downstream RLVR performance across multiple RL algorithms (GRPO, DAPO, GSPO) and diverse multimodal benchmarks, improving average accuracy by <b>+4.4</b> and <b>+6.0</b> points over the SFT&rarr;RLVR baseline on 4B and 8B, respectively.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contributions -->
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered has-text-centered">
+                    <div class="column is-four-fifths">
+                        <h2 class="title is-3">Contributions</h2>
+                        <div class="content has-text-justified">
+                            <p>
+                                <b>(1) PRISM: A Three-Stage Post-Training Pipeline</b><br>
+                                We propose PRISM, the first framework to reposition on-policy distillation as a standalone intermediate alignment stage between SFT and RLVR. In the multimodal setting, PRISM introduces black-box adversarial alignment with an MoE discriminator, providing decoupled corrective signals for perception and reasoning drift.
+                            </p>
+                            <p>
+                                <b>(2) High-Quality Multimodal Reasoning Corpus</b><br>
+                                We curate a 113K multimodal reasoning corpus distilled from Gemini 3 Flash, targeting the hardest problems unsolved by current LMMs with dense visual grounding and step-by-step reasoning traces. Combined with 1.26M public demonstrations, this corpus serves as both the SFT foundation and the supervision reference for distribution alignment.
+                            </p>
+                            <p>
+                                <b>(3) Consistent Improvements Across RL Algorithms</b><br>
+                                Experiments on Qwen3-VL-4B/8B validate that PRISM consistently and substantially improves downstream RLVR, with PRISM+GRPO outperforming SFT&rarr;GRPO by +4.4 and +6.0 average points on the two scales, respectively, and similar gains observed across DAPO and GSPO.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Figure -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Overview</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="item">
+                            <img src="static/images/overview.png" alt="PRISM Overview">
+                            <h2 class="subtitle has-text-justified">
+                                <b>Overview of the PRISM pipeline.</b>
+                                (a) SFT introduces <span class="text-red">distributional drift</span> between the policy and the supervision distribution.
+                                (b) The alignment stage uses an MoE discriminator with dedicated <span class="text-green">perception</span> and <span class="text-green">reasoning experts</span> to repair this drift via adversarial on-policy distillation.
+                                (c) The resulting <span class="text-green">distribution-aligned policy</span> provides a stronger initialization for downstream RLVR.
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alignment Pipeline -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3 wrap-title">Distribution Alignment Architecture</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="item">
+                            <img src="static/images/alignment_pipeline.png" alt="Alignment Pipeline">
+                            <h2 class="subtitle has-text-justified">
+                                <b>Architecture of the distribution-alignment stage.</b>
+                                An MoE discriminator with <span class="text-green">perception</span> and <span class="text-green">reasoning experts</span> is trained via Bradley-Terry loss to distinguish supervision from policy outputs; the policy is updated via policy gradient to maximize the combined MoE reward.
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Results Table -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Main Results</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="table-container">
+                            <table class="table is-bordered is-striped is-hoverable is-fullwidth is-size-7">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">Method</th>
+                                        <th colspan="4">Math Benchmarks</th>
+                                        <th colspan="3">General Benchmarks</th>
+                                        <th rowspan="2">Avg.</th>
+                                    </tr>
+                                    <tr>
+                                        <th>MathVista</th>
+                                        <th>MathVerse</th>
+                                        <th>MathVision</th>
+                                        <th>WeMath</th>
+                                        <th>MMMU</th>
+                                        <th>MMMU-Pro</th>
+                                        <th>HalluBench</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="section-header"><td colspan="9"><b>Qwen3-VL-4B</b></td></tr>
+                                    <tr>
+                                        <td class="text-left">Instruct</td>
+                                        <td>74.9</td><td>59.0</td><td>36.5</td><td>70.7</td>
+                                        <td>63.6</td><td>45.1</td><td>68.2</td><td>59.7</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ SFT</td>
+                                        <td>71.5</td><td>58.4</td><td>31.9</td><td>70.6</td>
+                                        <td>53.6</td><td>42.8</td><td>69.1</td><td>56.8</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ GRPO</td>
+                                        <td>75.7</td><td>64.5</td><td>35.5</td><td>77.8</td>
+                                        <td>60.1</td><td>47.3</td><td>72.0</td><td>61.8</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ DAPO</td>
+                                        <td>74.3</td><td>65.1</td><td>42.7</td><td>77.2</td>
+                                        <td>62.5</td><td>48.0</td><td>72.3</td><td>63.2</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ GSPO</td>
+                                        <td>75.2</td><td>64.0</td><td>37.5</td><td>78.4</td>
+                                        <td>58.7</td><td>45.6</td><td>71.9</td><td>61.6</td>
+                                    </tr>
+                                    <tr class="has-background-light" style="border-top: 2px dashed #ccc;">
+                                        <td class="text-left">PRISM</td>
+                                        <td>71.0</td><td>59.5</td><td>30.6</td><td>67.5</td>
+                                        <td>56.3</td><td>42.8</td><td>72.6</td><td>57.2</td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ GRPO</td>
+                                        <td><b>77.9</b></td><td><b>68.6</b></td><td>45.4</td><td>82.9</td>
+                                        <td><b>64.1</b></td><td>49.7</td><td><b>74.8</b></td><td>66.2</td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ DAPO</td>
+                                        <td>77.8</td><td>68.2</td><td><b>46.7</b></td><td><b>83.9</b></td>
+                                        <td><b>64.1</b></td><td>50.4</td><td>72.9</td><td><b>66.3</b></td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ GSPO</td>
+                                        <td>77.5</td><td>66.6</td><td><b>46.7</b></td><td>82.3</td>
+                                        <td>63.2</td><td><b>51.1</b></td><td>72.9</td><td>65.8</td>
+                                    </tr>
+
+                                    <tr class="section-header"><td colspan="9"><b>Qwen3-VL-8B</b></td></tr>
+                                    <tr>
+                                        <td class="text-left">Instruct</td>
+                                        <td>76.0</td><td>62.4</td><td>43.7</td><td>71.7</td>
+                                        <td>65.6</td><td>52.3</td><td>71.6</td><td>63.3</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ SFT</td>
+                                        <td>70.2</td><td>60.4</td><td>32.6</td><td>73.4</td>
+                                        <td>56.3</td><td>42.9</td><td>71.2</td><td>58.1</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ GRPO</td>
+                                        <td>75.9</td><td>66.9</td><td>37.1</td><td>79.7</td>
+                                        <td>62.6</td><td>48.8</td><td>71.9</td><td>63.3</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ DAPO</td>
+                                        <td>77.0</td><td>69.8</td><td>41.5</td><td>84.3</td>
+                                        <td>63.0</td><td>49.0</td><td>71.5</td><td>65.2</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">&nbsp;&nbsp;+ GSPO</td>
+                                        <td>75.9</td><td>65.5</td><td>41.1</td><td>80.8</td>
+                                        <td>58.2</td><td>47.8</td><td>73.6</td><td>63.3</td>
+                                    </tr>
+                                    <tr class="has-background-light" style="border-top: 2px dashed #ccc;">
+                                        <td class="text-left">PRISM</td>
+                                        <td>71.4</td><td>62.2</td><td>37.1</td><td>73.1</td>
+                                        <td>58.4</td><td>43.4</td><td>69.5</td><td>59.3</td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ GRPO</td>
+                                        <td><b>78.3</b></td><td>71.3</td><td><b>52.0</b></td><td><b>86.4</b></td>
+                                        <td><b>66.6</b></td><td><b>53.3</b></td><td><b>77.2</b></td><td><b>69.3</b></td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ DAPO</td>
+                                        <td>78.2</td><td>70.9</td><td><b>52.0</b></td><td>86.2</td>
+                                        <td>66.2</td><td>52.4</td><td>76.1</td><td>68.9</td>
+                                    </tr>
+                                    <tr class="has-background-light">
+                                        <td class="text-left">&nbsp;&nbsp;+ GSPO</td>
+                                        <td>77.9</td><td><b>71.5</b></td><td>51.6</td><td>85.9</td>
+                                        <td>65.2</td><td>52.7</td><td>75.8</td><td>68.7</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="has-text-justified is-size-6">
+                            <b>Main results on mathematical reasoning and general multimodal benchmarks.</b> We report accuracy (%) for all benchmarks. <b>Bold</b> indicates the best result within each base model. Shaded rows denote PRISM (ours). PRISM consistently improves downstream RLVR performance across all RL algorithms and both model scales.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ablation Study -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Ablation Study</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="table-container">
+                            <table class="table is-bordered is-striped is-hoverable is-fullwidth is-size-7">
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2">Setting</th>
+                                        <th colspan="4">Math Benchmarks</th>
+                                        <th colspan="3">General Benchmarks</th>
+                                        <th rowspan="2">Avg.</th>
+                                    </tr>
+                                    <tr>
+                                        <th>MathVista</th>
+                                        <th>MathVerse</th>
+                                        <th>MathVision</th>
+                                        <th>WeMath</th>
+                                        <th>MMMU</th>
+                                        <th>MMMU-Pro</th>
+                                        <th>HalluBench</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="has-background-light">
+                                        <td class="text-left"><b>PRISM (full)</b></td>
+                                        <td><b>77.9</b></td><td><b>68.6</b></td><td><b>45.4</b></td><td><b>82.9</b></td>
+                                        <td><b>64.1</b></td><td><b>49.7</b></td><td><b>74.8</b></td><td><b>66.2</b></td>
+                                    </tr>
+                                    <tr class="section-header"><td colspan="9"><b>Discriminator Design</b></td></tr>
+                                    <tr>
+                                        <td class="text-left">Dense 4B disc.</td>
+                                        <td>74.6</td><td>63.7</td><td>41.8</td><td>76.9</td>
+                                        <td>61.3</td><td>47.1</td><td>74.0</td><td>62.8</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">Text-only disc.</td>
+                                        <td>74.0</td><td>59.5</td><td>42.8</td><td>76.8</td>
+                                        <td>62.7</td><td>48.5</td><td>71.6</td><td>62.3</td>
+                                    </tr>
+                                    <tr class="section-header"><td colspan="9"><b>Pipeline Stages</b></td></tr>
+                                    <tr>
+                                        <td class="text-left">w/o SFT</td>
+                                        <td>62.4</td><td>47.6</td><td>25.9</td><td>55.7</td>
+                                        <td>51.4</td><td>36.5</td><td>66.1</td><td>49.4</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">w/o Alignment</td>
+                                        <td>75.7</td><td>64.5</td><td>35.5</td><td>77.8</td>
+                                        <td>60.1</td><td>47.3</td><td>72.0</td><td>61.8</td>
+                                    </tr>
+                                    <tr class="section-header"><td colspan="9"><b>SFT Data Scale</b></td></tr>
+                                    <tr>
+                                        <td class="text-left">SFT-107K</td>
+                                        <td>72.3</td><td>67.0</td><td>43.1</td><td>76.9</td>
+                                        <td>60.6</td><td>49.0</td><td>68.3</td><td>62.5</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-left">SFT-1.37M</td>
+                                        <td>77.9</td><td>68.6</td><td>45.4</td><td>82.9</td>
+                                        <td>64.1</td><td>49.7</td><td>74.8</td><td>66.2</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="has-text-justified is-size-6">
+                            <b>Ablation study results.</b> The first row is the full PRISM pipeline for reference. The MoE discriminator, the three-stage pipeline, and sufficient SFT data are all critical for achieving the best performance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Analysis</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-half has-text-centered">
+                        <img src="static/images/teacher_minus_student_diff.png" alt="Training Dynamics">
+                    </div>
+                    <div class="column is-half has-text-centered">
+                        <img src="static/images/distribution_visualization.png" alt="Distribution Visualization">
+                    </div>
+                </div>
+                <p class="has-text-justified is-size-6">
+                    <b>Left: Training dynamics</b> &mdash; Reward gap (supervision &minus; policy) for the perception expert and reasoning expert. The perception expert peaks early and converges quickly, whereas the reasoning expert rises more gradually and exhibits greater oscillation, reflecting the distinct nature of visual and reasoning alignment.
+                    <b>Right: Structural proxies of distribution alignment</b> &mdash; Reasoning steps and descriptive items per caption across PRISM stages. The alignment stage substantially reduces the mismatch between policy and supervision distributions, and this improvement persists through RLVR.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Token Efficiency -->
+    <section class="section hero is-light">
+        <div class="container is-max-desktop">
+            <div class="columns is-centered has-text-centered">
+                <div class="column is-four-fifths">
+                    <h2 class="title is-3">Token Efficiency</h2>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="hero">
+        <div class="hero-body">
+            <div class="container is-max-desktop">
+                <div class="columns is-centered">
+                    <div class="column is-full">
+                        <div class="item">
+                            <img src="static/images/benchmark_comparison.png" alt="Token Efficiency">
+                            <h2 class="subtitle has-text-justified">
+                                <b>Token efficiency comparison on MathVision, MathVerse, and MMMU-Pro (Qwen3-VL-4B).</b>
+                                PRISM+GRPO achieves <span class="text-green">higher accuracy</span> with <span class="text-green">fewer tokens</span> across all three benchmarks, suggesting that the alignment stage encourages more concise and effective reasoning rather than simply producing longer outputs.
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Citation (to be added later) -->
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="content">
+                        <p>
+                            This page was built using the
+                            <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>
+                            which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+                            <br>
+                            This website is licensed under a
+                            <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
