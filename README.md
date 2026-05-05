@@ -530,7 +530,12 @@ If you find this project helpful, please consider giving us a star and citing
 our paper with:
 
 ```bibtex
-% TODO: citation will be added once the paper is released.
+@article{wang2026beyond,
+  title={Beyond SFT-to-RL: Pre-alignment via Black-Box On-Policy Distillation for Multimodal RL},
+  author={Wang, Sudong and Huang, Weiquan and Yu, Xiaomin and Yang, Zuhao and Lin, Hehai and Wu, Keming and Xiao, Chaojun and Chen, Chen and Wang, Wenxuan and Zhu, Beier and Zhang, Yunjian and Qin, Chengwei},
+  journal={arXiv preprint arXiv:2604.28123},
+  year={2026}
+}
 ```
 
 ---
