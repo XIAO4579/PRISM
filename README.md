@@ -7,6 +7,7 @@
 [![GitHub](https://img.shields.io/badge/Code-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/XIAO4579/PRISM)
 [![Data](https://img.shields.io/badge/Data-0040A1?style=for-the-badge&logo=huggingface&logoColor=ffffff)](https://huggingface.co/prism-vlm)
 [![Models](https://img.shields.io/badge/Models-5EDDD2?style=for-the-badge&logo=huggingface&logoColor=ffffff)](https://huggingface.co/prism-vlm)
+[![Daily Paper](https://img.shields.io/badge/Daily_Paper-FFD21E?style=for-the-badge&logo=huggingface&logoColor=000000)](https://huggingface.co/papers/2604.28123)
 
 </div>
 
