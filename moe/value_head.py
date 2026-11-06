@@ -258,7 +258,7 @@ class Qwen2VLMoeValueHead(nn.Module):
                 from safetensors.torch import load_file
                 state_dict = load_file(weights_path)
             else:
-                state_dict = torch.load(weights_path, map_location="cpu")
+                state_dict = torch.load(weights_path, map_location="cpu", weights_only=True)
             
             # 提取 v_head 权重
             v_head_state = {}
@@ -523,7 +523,7 @@ class Qwen3VLMoeValueHead(nn.Module):
                 from safetensors.torch import load_file
                 state_dict = load_file(weights_path)
             else:
-                state_dict = torch.load(weights_path, map_location="cpu")
+                state_dict = torch.load(weights_path, map_location="cpu", weights_only=True)
             
             # 提取 v_head 权重
             v_head_state = {}
